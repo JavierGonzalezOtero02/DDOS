@@ -1,40 +1,40 @@
 #!/usr/bin/env python
 
-# Import scapy libraries
+# Importar las bibliotecas de Scapy
 from scapy.all import *
 
-# Set the interface to listen and respond on
+# Establecer la interfaz para escuchar y responder
 net_interface = "DNS2-eth0"
 
-# Berkeley Packet Filter for sniffing specific DNS packet only
-packet_filter = " and ".join([
-    "udp dst port 53",          # Filter UDP port 53
-    "udp[10] & 0x80 = 0",       # DNS queries only
+# Filtro de paquetes de Berkeley Packet Filter para capturar únicamente paquetes DNS específicos
+packet_filter = " y ".join([
+    "udp puerto destino 53",         # Filtrar el puerto UDP 53
+    "udp[10] & 0x80 = 0",            # Solo consultas DNS
     ])
 
-# Function that replies to DNS query
+# Función que responde a las consultas DNS
 def dns_reply(packet):
 
-    # Construct the DNS packet
-    # Construct the Ethernet header by looking at the sniffed packet
+    # Construir el paquete DNS
+    # Construir la cabecera Ethernet mirando el paquete capturado
     eth = Ether(
         src=packet[Ether].dst,
         dst=packet[Ether].src
         )
 
-    # Construct the IP header by looking at the sniffed packet
+    # Construir la cabecera IP mirando el paquete capturado
     ip = IP(
         src=packet[IP].dst,
         dst=packet[IP].src
         )
 
-    # Construct the UDP header by looking at the sniffed packet
+    # Construir la cabecera UDP mirando el paquete capturado
     udp = UDP(
-        dport=packet[UDP].sport,
-        sport=packet[UDP].dport
+        puerto_destino=packet[UDP].puerto_origen,
+        puerto_origen=packet[UDP].puerto_destino
         )
 
-    # Construct the DNS response by looking at the sniffed packet and manually depending on qtype field. 0 -> ANY. 1 -> A
+    # Construir la respuesta DNS mirando el paquete capturado y dependiendo manualmente del campo qtype. 0 -> CUALQUIERA. 1 -> A
     qtype = packet[DNS].qd.qtype
     if qtype == 0:
         dns = DNS(
@@ -83,13 +83,12 @@ def dns_reply(packet):
 	    an=[DNSRR(rrname=packet[DNS].qd.qname, type='A', rclass='IN', ttl=600, rdata='1.2.3.4')]
 	    )
 
-    # Put the full packet together
+    # Ensamblar el paquete completo
     response_packet = eth / ip / udp / dns
 
-    # Send the DNS response
+    # Enviar la respuesta DNS
     sendp(response_packet, iface=net_interface)
 
-# Sniff for a DNS query matching the 'packet_filter' and send a specially crafted reply
+# Capturar una consulta DNS que coincida con el 'packet_filter' y enviar una respuesta especialmente diseñada
 while True:
     sniff(filter=packet_filter, prn=dns_reply, store=1, iface=net_interface, count=1)
-
