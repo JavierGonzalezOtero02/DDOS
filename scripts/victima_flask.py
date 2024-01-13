@@ -1,4 +1,3 @@
-#este código simula un servidor http, que será la víctima del ataque
 from flask import Flask, jsonify
 import os
 
